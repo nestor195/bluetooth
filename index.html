@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Control de motores ESP32</title>
+</head>
+<body>
+  <button id="connect">Conectar</button>
+  <button onclick="sendCommand('ADELANTE')">Adelante</button>
+  <button onclick="sendCommand('ATRAS')">Atrás</button>
+  <button onclick="sendCommand('STOP')">Stop</button>
+
+<script>
+let device, server, service, characteristic;
+
+document.getElementById("connect").onclick = async () => {
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ name: "ESP32-Motores" }],
+      optionalServices: ["12345678-1234-1234-1234-1234567890ab"]
+    });
+
+    server = await device.gatt.connect();
+    service = await server.getPrimaryService("12345678-1234-1234-1234-1234567890ab");
+    characteristic = await service.getCharacteristic("abcd1234-5678-90ab-cdef-1234567890ab");
+
+    alert("Conectado al ESP32");
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+async function sendCommand(cmd) {
+  if (!characteristic) return alert("No conectado");
+  let encoder = new TextEncoder();
+  await characteristic.writeValue(encoder.encode(cmd));
+}
+</script>
+</body>
+</html>
